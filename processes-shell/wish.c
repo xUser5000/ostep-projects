@@ -4,6 +4,11 @@
 #include <string.h>
 #include "vector.h"
 
+/* Change directory to the specified path */
+void cd (char* path) {
+    chdir(path);
+}
+
 /* Given a line, return a vector of space-separated tokens */
 Vector getTokens (char* l) {
     char* line = (char*) malloc( (strlen(l) + 1) * sizeof(char));
@@ -33,6 +38,13 @@ char* trim (char* line) {
 
 void execute_command (Vector line) {
     if (line.size == 1 && strcmp(get(&line, 0), "exit") == 0) exit(0);
+    if (
+        line.size == 2 &&
+        strcmp(get(&line, 0), "cd") == 0
+    ) {
+        cd(get(&line, 1));
+        return;
+    }
     for (int i = 0; i < line.size; i++) printf("%s ", get(&line, i));
     printf("\n");
 }

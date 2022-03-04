@@ -4,9 +4,17 @@
 #include <string.h>
 #include "vector.h"
 
+Vector PATH;
+
 /* Change directory to the specified path */
 void cd (char* path) {
     chdir(path);
+}
+
+/* Set the PATH Variable */
+void path (Vector params) {
+    PATH = create_vector();
+    for (int i = 0; i < params.size; i++) push_back(&PATH, get(&params, i));
 }
 
 /* Given a line, return a vector of space-separated tokens */
@@ -43,6 +51,14 @@ void execute_command (Vector line) {
         strcmp(get(&line, 0), "cd") == 0
     ) {
         cd(get(&line, 1));
+        return;
+    }
+    if (line.size >= 1 && strcmp("path", get(&line, 0)) == 0) {
+        Vector params = create_vector();
+        for (int i = 1; i < line.size; i++) push_back(&params, get(&line, i));
+        path(params);
+        for (int i = 0; i < PATH.size; i++) printf("%s ", get(&PATH, i));
+        printf("\n");
         return;
     }
     for (int i = 0; i < line.size; i++) printf("%s ", get(&line, i));

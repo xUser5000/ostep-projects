@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <string.h>
 #include "vector.h"
 
@@ -15,6 +16,20 @@ void cd (char* path) {
 void path (Vector params) {
     PATH = create_vector();
     for (int i = 0; i < params.size; i++) push_back(&PATH, get(&params, i));
+}
+
+/* Given the path of a binary, execute it */
+void spawn_process (char* bin, char* argv[]) {
+    int rc = fork();
+
+    // child process
+    if (rc == 0) {
+        execv(bin, argv);
+        return;
+    }
+
+    // parent process
+    wait(NULL);
 }
 
 /* Given a line, return a vector of space-separated tokens */
@@ -43,30 +58,48 @@ char* trim (char* line) {
     return ans;
 }
 
+/* Given two strings, return the concatenation of them */
+char* concat (char* a, char* b) {
+    char* ans = (char*) malloc((strlen(a) + strlen(b) + 1) * sizeof(char));
+    strcpy(ans, a);
+    strcat(ans, b);
+    return ans;
+}
 
 void execute_command (Vector line) {
-    if (line.size == 1 && strcmp(get(&line, 0), "exit") == 0) exit(0);
+    char* command = get(&line, 0);
+    if (line.size == 1 && strcmp(command, "exit") == 0) exit(0);
     if (
         line.size == 2 &&
-        strcmp(get(&line, 0), "cd") == 0
+        strcmp(command, "cd") == 0
     ) {
         cd(get(&line, 1));
         return;
     }
-    if (line.size >= 1 && strcmp("path", get(&line, 0)) == 0) {
+    if (line.size >= 1 && strcmp("path", command) == 0) {
         Vector params = create_vector();
         for (int i = 1; i < line.size; i++) push_back(&params, get(&line, i));
         path(params);
-        for (int i = 0; i < PATH.size; i++) printf("%s ", get(&PATH, i));
-        printf("\n");
         return;
     }
-    for (int i = 0; i < line.size; i++) printf("%s ", get(&line, i));
-    printf("\n");
+    for (int i = 0; i < PATH.size; i++) {
+        char* p = concat(get(&PATH, i), concat("/", command));
+        if (access(p, X_OK) == 0) {
+            char** argv = (char**) malloc((line.size + 1) * sizeof(char*));
+            argv[0] = p;
+            for (int i = 1; i < line.size; i++) argv[i] = get(&line, i);
+            argv[line.size] = NULL;
+            spawn_process(p, argv);
+            return;
+        }
+    }
+    printf("Can't find the specified executable\n");
 }
 
 int main (int argc, char* argv[])
 {
+
+    push_back(&PATH, "/bin");
 
     while (1)
     {

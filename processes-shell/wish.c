@@ -13,6 +13,9 @@ Vector parse (char* line);
 /* check if the given character should be used as a delimeter for parse() */
 int isDelimiter (char);
 
+/* Returns true if the syntax of the given command is valid */
+int isValid (Vector tokens);
+
 /* Given a string, removes leading and trailing white spaces */
 char* trim (char* str);
 
@@ -34,7 +37,12 @@ int main (int argc, char* argv[])
         size_t n = 0;
         int len = getline(&line, &n, stdin);
         line[len-1] = '\0';
-        execute_command(parse(line));
+        Vector tokens = parse(line);
+        if (!isValid(tokens)) {
+            printf("Invalid format\n");
+            continue;
+        }
+        execute_command(tokens);
     }
 
 return 0;
@@ -63,6 +71,17 @@ Vector parse (char* line) {
         }
     }
     return ans;
+}
+
+int isValid (Vector tokens) {
+    int n = tokens.size;
+    for (int i = 0; i < n; i++) {
+        if (strcmp(">", get(&tokens, i)) == 0) {
+            if (i == 0 || i == n-1 || n-1-i > 1) return 0;
+            if (i != n-1 && strcmp(">", get(&tokens, i+1)) == 0) return 0;
+        }
+    }
+    return 1;
 }
 
 char* trim (char* line) {

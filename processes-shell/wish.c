@@ -7,8 +7,11 @@
 
 Vector PATH;
 
-/* Given a command line, return a vector of space-separated tokens */
+/* Given a command line, return a vector of logical tokens */
 Vector parse (char* line);
+
+/* check if the given character can be used as a delimeter for parse() */
+int isDelimiter (char);
 
 /* Given a string, removes leading and trailing white spaces */
 char* trim (char* str);
@@ -37,15 +40,23 @@ int main (int argc, char* argv[])
 return 0;
 }
 
+int isDelimiter (char c) {
+    return (c == ' ') || (c == '\t');
+}
+
 Vector parse (char* line) {
-    line = trim(line);
-    char* s = strdup(line);
     Vector ans = create_vector();
-    char* token = NULL;
-    while (s != NULL) {
-        while(*s == ' ') s++;
-        token = strsep(&s, " ");
-        push_back(&ans, token);
+    int n = strlen(line);
+    char* s = NULL;
+    int start = -1;
+    for (int i = 0; i < n; i++) {
+        if (!isDelimiter(line[i])) {
+            if (i == 0 || isDelimiter(line[i-1])) start = i;
+            if (i == n-1 || isDelimiter(line[i+1])) {
+                s = strndup(line+start, i-start+1);
+                push_back(&ans, s);
+            }
+        }
     }
     return ans;
 }

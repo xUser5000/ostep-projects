@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "vector.h"
 
 Vector create_vector () {
@@ -32,4 +33,12 @@ char* get (Vector* v, int index) {
 
 int get_size(Vector* v) {
     return v->size;
+}
+
+int search_key (Vector* v, char* key) {
+    int n = v->size;
+    for (int i = 0; i < n; i++) {
+        if (strcmp(key, v->data[i]) == 0) return i;
+    }
+    return -1;
 }

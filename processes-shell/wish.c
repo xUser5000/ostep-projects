@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <string.h>
 #include "vector.h"
@@ -15,9 +16,6 @@ int isDelimiter (char);
 
 /* Returns true if the syntax of the given command is valid */
 int isValid (Vector tokens);
-
-/* Given a string, removes leading and trailing white spaces */
-char* trim (char* str);
 
 /* Given two strings, return the concatenation of them */
 char* concat (char* a, char* b);
@@ -84,17 +82,6 @@ int isValid (Vector tokens) {
     return 1;
 }
 
-char* trim (char* line) {
-    int l = 0, r = strlen(line) - 1;
-    while (line[l] == ' ') l++;
-    while (line[r] == ' ') r--;
-    int length = r - l + 1;
-    char* ans = (char*) malloc((length + 1) * sizeof(char));
-    strncpy(ans, line+l, length);
-    ans[length] = '\0';
-    return ans;
-}
-
 char* concat (char* a, char* b) {
     char* ans = (char*) malloc((strlen(a) + strlen(b) + 1) * sizeof(char));
     strcpy(ans, a);
@@ -118,16 +105,43 @@ void execute_command (Vector tokens) {
         PATH = params;
         return;
     }
-    for (int i = 0; i < PATH.size; i++) {
-        char* p = concat(get(&PATH, i), concat("/", command));
-        if (access(p, X_OK) == 0) {
-            char** argv = (char**) malloc((tokens.size + 1) * sizeof(char*));
-            argv[0] = p;
-            for (int i = 1; i < tokens.size; i++) argv[i] = get(&tokens, i);
-            argv[tokens.size] = NULL;
-            if (fork() == 0) execv(p, argv);
-            wait(NULL);
-            return;
+    
+    int pos = search_key(&tokens, ">");
+
+    // Execute the command the redirect the output to the specified file
+    if (pos != -1) {
+        for (int i = 0; i < PATH.size; i++) {
+            char* p = concat(get(&PATH, i), concat("/", command));
+            if (access(p, X_OK) == 0) {
+                char** argv = (char**) malloc((pos + 1) * sizeof(char*));
+                for (int i = 0; i < pos; i++) argv[i] = get(&tokens, i);
+                argv[pos] = NULL;
+                
+                if (fork() == 0) {
+                    close(STDOUT_FILENO);
+                    int output_file_descriptor = open(
+                        get(&tokens, tokens.size - 1),
+                        O_CREAT | O_WRONLY | O_TRUNC,
+                        S_IRWXU
+                    );
+                    execv(p, argv);
+                    close(output_file_descriptor);
+                }
+                return;
+            }
+        }
+    } else {
+        for (int i = 0; i < PATH.size; i++) {
+            char* p = concat(get(&PATH, i), concat("/", command));
+            if (access(p, X_OK) == 0) {
+                char** argv = (char**) malloc((tokens.size + 1) * sizeof(char*));
+                argv[0] = p;
+                for (int i = 1; i < tokens.size; i++) argv[i] = get(&tokens, i);
+                argv[tokens.size] = NULL;
+                if (fork() == 0) execv(p, argv);
+                wait(NULL);
+                return;
+            }
         }
     }
     printf("Can't find the specified executable\n");

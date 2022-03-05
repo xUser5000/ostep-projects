@@ -41,7 +41,7 @@ return 0;
 }
 
 int isDelimiter (char c) {
-    return (c == ' ') || (c == '\t');
+    return (c == ' ') || (c == '\t') || (c == '>');
 }
 
 Vector parse (char* line) {
@@ -50,6 +50,10 @@ Vector parse (char* line) {
     char* s = NULL;
     int start = -1;
     for (int i = 0; i < n; i++) {
+        if (line[i] == '>') {
+            push_back(&ans, ">");
+            continue;
+        }
         if (!isDelimiter(line[i])) {
             if (i == 0 || isDelimiter(line[i-1])) start = i;
             if (i == n-1 || isDelimiter(line[i+1])) {

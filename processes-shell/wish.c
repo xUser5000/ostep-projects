@@ -106,43 +106,34 @@ void execute_command (Vector tokens) {
         return;
     }
     
+    /**
+     * Spawn the required process to execute the command
+     * Supports redirection to files
+     */
     int pos = search_key(&tokens, ">");
-
-    // Execute the command the redirect the output to the specified file
-    if (pos != -1) {
-        for (int i = 0; i < PATH.size; i++) {
-            char* p = concat(get(&PATH, i), concat("/", command));
-            if (access(p, X_OK) == 0) {
-                char** argv = (char**) malloc((pos + 1) * sizeof(char*));
-                for (int i = 0; i < pos; i++) argv[i] = get(&tokens, i);
-                argv[pos] = NULL;
-                
-                if (fork() == 0) {
+    if (pos == -1) pos = tokens.size;
+    for (int i = 0; i < PATH.size; i++) {
+        char* p = concat(get(&PATH, i), concat("/", command));
+        if (access(p, X_OK) == 0) {
+            char* argv[pos+1];
+            for (int i = 0; i < pos; i++) argv[i] = get(&tokens, i);
+            argv[pos] = NULL;
+            
+            if (fork() == 0) {
+                if (pos != tokens.size) {
                     close(STDOUT_FILENO);
-                    int output_file_descriptor = open(
+                    open(
                         get(&tokens, tokens.size - 1),
                         O_CREAT | O_WRONLY | O_TRUNC,
                         S_IRWXU
                     );
-                    execv(p, argv);
-                    close(output_file_descriptor);
                 }
-                return;
+                execv(p, argv);
             }
-        }
-    } else {
-        for (int i = 0; i < PATH.size; i++) {
-            char* p = concat(get(&PATH, i), concat("/", command));
-            if (access(p, X_OK) == 0) {
-                char** argv = (char**) malloc((tokens.size + 1) * sizeof(char*));
-                argv[0] = p;
-                for (int i = 1; i < tokens.size; i++) argv[i] = get(&tokens, i);
-                argv[tokens.size] = NULL;
-                if (fork() == 0) execv(p, argv);
-                wait(NULL);
-                return;
-            }
+            wait(NULL);
+            return;
         }
     }
+
     printf("Can't find the specified executable\n");
 }

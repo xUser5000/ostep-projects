@@ -14,8 +14,11 @@ Vector parse (char* line);
 /* check if the given character should be used as a delimeter for parse() */
 int isDelimiter (char);
 
-/* Returns true if the syntax of the given command is valid */
-int isValid (Vector tokens);
+/* Returns true if the given command is valid in terms of the redirection syntax */
+int isValidRedirection (Vector tokens);
+
+/* Returns true if the given command is valid in terms of the Ampersand syntax */
+int isValidAmpersand (Vector tokens);
 
 /* Given two strings, return the concatenation of them */
 char* concat (char* a, char* b);
@@ -36,18 +39,34 @@ int main (int argc, char* argv[])
         int len = getline(&line, &n, stdin);
         line[len-1] = '\0';
         Vector tokens = parse(line);
-        if (!isValid(tokens)) {
+        if (!isValidAmpersand(tokens)) {
             printf("Invalid format\n");
             continue;
         }
-        execute_command(tokens);
+        Vector command = create_vector();
+        for (int i = 0; i < tokens.size; i++) {
+            if (strcmp("&", get(&tokens, i)) != 0) {
+                push_back(&command, get(&tokens, i));
+            }
+            if (
+                i == tokens.size - 1 ||
+                strcmp("&", get(&tokens, i+1)) == 0
+            ) {
+                if (!isValidRedirection(command)) {
+                    printf("Invalid format\n");
+                    break;
+                }
+                execute_command(command);
+                command = create_vector();
+            }
+        }
     }
 
 return 0;
 }
 
 int isDelimiter (char c) {
-    return (c == ' ') || (c == '\t') || (c == '>');
+    return (c == ' ') || (c == '\t') || (c == '>') || (c == '&');
 }
 
 Vector parse (char* line) {
@@ -58,6 +77,10 @@ Vector parse (char* line) {
     for (int i = 0; i < n; i++) {
         if (line[i] == '>') {
             push_back(&ans, ">");
+            continue;
+        }
+        if (line[i] == '&') {
+            push_back(&ans, "&");
             continue;
         }
         if (!isDelimiter(line[i])) {
@@ -71,12 +94,23 @@ Vector parse (char* line) {
     return ans;
 }
 
-int isValid (Vector tokens) {
+int isValidRedirection (Vector tokens) {
     int n = tokens.size;
     for (int i = 0; i < n; i++) {
         if (strcmp(">", get(&tokens, i)) == 0) {
             if (i == 0 || i == n-1 || n-1-i > 1) return 0;
             if (i != n-1 && strcmp(">", get(&tokens, i+1)) == 0) return 0;
+        }
+    }
+    return 1;
+}
+
+int isValidAmpersand (Vector tokens) {
+    int n = tokens.size;
+    for (int i = 0; i < n; i++) {
+        if (strcmp("&", get(&tokens, i)) == 0) {
+            if (i == 0 || i == n-1) return 0;
+            if (i != n-1 && strcmp("&", get(&tokens, i+1)) == 0) return 0;
         }
     }
     return 1;

@@ -23,8 +23,11 @@ int isValidAmpersand (Vector tokens);
 /* Given two strings, return the concatenation of them */
 char* concat (char* a, char* b);
 
-/* Given a command as a vector of tokens, execute the command */
-void execute_command (Vector tokens);
+/**
+ * Given a command as a vector of tokens, execute the command
+ * Returns the process id of the created process
+ */
+int execute_command (Vector tokens);
 
 int main (int argc, char* argv[])
 {
@@ -43,7 +46,13 @@ int main (int argc, char* argv[])
             printf("Invalid format\n");
             continue;
         }
+        int commandsCount = 1;
+        for (int i = 0; i < tokens.size; i++) {
+            if (strcmp("&", get(&tokens, i)) == 0) commandsCount++;
+        }
         Vector command = create_vector();
+        int processIds[commandsCount];
+        int sz = 0;
         for (int i = 0; i < tokens.size; i++) {
             if (strcmp("&", get(&tokens, i)) != 0) {
                 push_back(&command, get(&tokens, i));
@@ -56,10 +65,13 @@ int main (int argc, char* argv[])
                     printf("Invalid format\n");
                     break;
                 }
-                execute_command(command);
+                int res = execute_command(command);
+                if (res != -1) processIds[sz++] = res;
                 command = create_vector();
             }
         }
+
+        for (int i = 0; i < sz; i++) waitpid(processIds[i], NULL, 0);
     }
 
 return 0;
@@ -123,7 +135,7 @@ char* concat (char* a, char* b) {
     return ans;
 }
 
-void execute_command (Vector tokens) {
+int execute_command (Vector tokens) {
     char* command = get(&tokens, 0);
     if (tokens.size == 1 && strcmp(command, "exit") == 0) exit(0);
     if (
@@ -131,13 +143,13 @@ void execute_command (Vector tokens) {
         strcmp(command, "cd") == 0
     ) {
         chdir(get(&tokens, 1));
-        return;
+        return -1;
     }
     if (tokens.size >= 1 && strcmp("path", command) == 0) {
         Vector params = create_vector();
         for (int i = 1; i < tokens.size; i++) push_back(&params, get(&tokens, i));
         PATH = params;
-        return;
+        return -1;
     }
     
     /**
@@ -153,7 +165,8 @@ void execute_command (Vector tokens) {
             for (int i = 0; i < pos; i++) argv[i] = get(&tokens, i);
             argv[pos] = NULL;
             
-            if (fork() == 0) {
+            int rc = fork();
+            if (rc == 0) {
                 if (pos != tokens.size) {
                     close(STDOUT_FILENO);
                     open(
@@ -164,10 +177,10 @@ void execute_command (Vector tokens) {
                 }
                 execv(p, argv);
             }
-            wait(NULL);
-            return;
+            return rc;
         }
     }
 
     printf("Can't find the specified executable\n");
+    return -1;
 }

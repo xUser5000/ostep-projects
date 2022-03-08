@@ -32,14 +32,25 @@ int execute_command (Vector tokens);
 int main (int argc, char* argv[])
 {
 
+    if (argc > 2) exit(1);
+    FILE* input_file = NULL;
+    if (argc == 2) {
+        input_file = freopen(argv[1], "r", stdin);
+        if (input_file == NULL) exit(1);
+    }
+
     push_back(&PATH, "/bin");
 
     while (1)
     {
-        printf("wish> ");
+        if (input_file == NULL) printf("wish> ");
         char* line = NULL;
         size_t n = 0;
         int len = getline(&line, &n, stdin);
+        if (len == -1) {
+            if (input_file == NULL) continue;
+            break;
+        }
         line[len-1] = '\0';
         Vector tokens = parse(line);
         if (!isValidAmpersand(tokens)) {

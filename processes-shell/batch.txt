@@ -1,0 +1,5 @@
+ls
+echo hello world
+echo welcome to cs50
+echo welcome to summoner's rift
+cat vector.h & echo hi

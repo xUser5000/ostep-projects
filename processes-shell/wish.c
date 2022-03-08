@@ -57,7 +57,6 @@ int main (int argc, char* argv[])
         line[len-1] = '\0';
         Vector tokens = parse(line);
         if (!isValidAmpersand(tokens)) {
-            showError();
             continue;
         }
         int commandsCount = 1;
@@ -70,6 +69,8 @@ int main (int argc, char* argv[])
         for (int i = 0; i < tokens.size; i++) {
             if (strcmp("&", get(&tokens, i)) != 0) {
                 push_back(&command, get(&tokens, i));
+            } else {
+                continue;
             }
             if (
                 i == tokens.size - 1 ||
@@ -135,7 +136,7 @@ int isValidAmpersand (Vector tokens) {
     int n = tokens.size;
     for (int i = 0; i < n; i++) {
         if (strcmp("&", get(&tokens, i)) == 0) {
-            if (i == 0 || i == n-1) return 0;
+            if (i == 0) return 0;
             if (i != n-1 && strcmp("&", get(&tokens, i+1)) == 0) return 0;
         }
     }

@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <string.h>
 #include "vector.h"
 
@@ -10,6 +12,9 @@ Vector PATH;
 
 /* Given a command line, return a vector of logical tokens */
 Vector parse (char* line);
+
+/* Returns true of both of the file descriptors point to the same file */
+int isSameFile (int, int);
 
 /* check if the given character should be used as a delimeter for parse() */
 int isDelimiter (char);
@@ -35,12 +40,26 @@ int execute_command (Vector tokens);
 int main (int argc, char* argv[])
 {
 
-    if (argc > 2) exit(1);
     FILE* input_file = NULL;
-    if (argc == 2) {
-        input_file = freopen(argv[1], "r", stdin);
-        if (input_file == NULL) exit(1);
+    char* input_file_path = NULL;
+    for (int i = 1; i < argc; i++) {
+        FILE* cur_file = fopen(argv[i], "r");
+        if (cur_file == NULL) {
+            showError();
+            exit(1);
+        }
+
+        if (input_file == NULL) {
+            input_file = cur_file;
+        } else {
+            if (!isSameFile(fileno(input_file), fileno(cur_file))) {
+                showError();
+                exit(1);
+            }
+        }
     }
+
+    if (input_file != NULL) stdin = fdopen(fileno(input_file), "r");
 
     push_back(&PATH, "/bin");
 
@@ -119,6 +138,13 @@ Vector parse (char* line) {
         }
     }
     return ans;
+}
+
+int isSameFile (int fd1, int fd2) {
+    struct stat stat1, stat2;
+    if(fstat(fd1, &stat1) < 0) return -1;
+    if(fstat(fd2, &stat2) < 0) return -1;
+    return (stat1.st_dev == stat2.st_dev) && (stat1.st_ino == stat2.st_ino);
 }
 
 int isValidRedirection (Vector tokens) {

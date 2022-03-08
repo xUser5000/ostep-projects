@@ -23,6 +23,9 @@ int isValidAmpersand (Vector tokens);
 /* Given two strings, return the concatenation of them */
 char* concat (char* a, char* b);
 
+/* Output the one and only error message to the screen */
+void showError ();
+
 /**
  * Given a command as a vector of tokens, execute the command
  * Returns the process id of the created process
@@ -54,7 +57,7 @@ int main (int argc, char* argv[])
         line[len-1] = '\0';
         Vector tokens = parse(line);
         if (!isValidAmpersand(tokens)) {
-            printf("Invalid format\n");
+            showError();
             continue;
         }
         int commandsCount = 1;
@@ -73,7 +76,7 @@ int main (int argc, char* argv[])
                 strcmp("&", get(&tokens, i+1)) == 0
             ) {
                 if (!isValidRedirection(command)) {
-                    printf("Invalid format\n");
+                    showError();
                     break;
                 }
                 int res = execute_command(command);
@@ -146,14 +149,23 @@ char* concat (char* a, char* b) {
     return ans;
 }
 
+void showError () {
+    char error_message[30] = "An error has occurred\n";
+    write(STDERR_FILENO, error_message, strlen(error_message)); 
+}
+
 int execute_command (Vector tokens) {
     char* command = get(&tokens, 0);
-    if (tokens.size == 1 && strcmp(command, "exit") == 0) exit(0);
+    if (strcmp(command, "exit") == 0) {
+        if (tokens.size != 1) showError();
+        else exit(0);
+        return -1;
+    }
     if (
-        tokens.size == 2 &&
         strcmp(command, "cd") == 0
     ) {
-        chdir(get(&tokens, 1));
+        if (tokens.size != 2) showError();
+        else chdir(get(&tokens, 1));
         return -1;
     }
     if (tokens.size >= 1 && strcmp("path", command) == 0) {
@@ -192,6 +204,6 @@ int execute_command (Vector tokens) {
         }
     }
 
-    printf("Can't find the specified executable\n");
+    showError();
     return -1;
 }

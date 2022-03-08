@@ -41,7 +41,6 @@ int main (int argc, char* argv[])
 {
 
     FILE* input_file = NULL;
-    char* input_file_path = NULL;
     for (int i = 1; i < argc; i++) {
         FILE* cur_file = fopen(argv[i], "r");
         if (cur_file == NULL) {

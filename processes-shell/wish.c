@@ -105,6 +105,10 @@ int main (int argc, char* argv[])
         }
 
         for (int i = 0; i < sz; i++) waitpid(processIds[i], NULL, 0);
+
+        free(line);
+        destroy(&tokens);
+        destroy(&command);
     }
 
 return 0;

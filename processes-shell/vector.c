@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include "vector.h"
 
@@ -41,4 +42,8 @@ int search_key (Vector* v, char* key) {
         if (strcmp(key, v->data[i]) == 0) return i;
     }
     return -1;
+}
+
+void destroy (Vector* v) {
+    free(v->data);
 }

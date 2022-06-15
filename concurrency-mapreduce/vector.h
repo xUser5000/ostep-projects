@@ -6,8 +6,8 @@ typedef struct __vector_t {
 } vector_t;
 
 vector_t* make_vector ();
-void push (vector_t* v, void* element);
-void pop (vector_t* v);
-void sort (vector_t* v, int (*compare)(const void*, const void*));
+void vector_push (vector_t* v, void* element);
+void vector_pop (vector_t* v);
+void vector_sort (vector_t* v, int (*compare)(const void*, const void*));
 int (*INT_COMPARATOR)(const void*, const void*);
 int (*STR_COMPARATOR)(const void*, const void*);

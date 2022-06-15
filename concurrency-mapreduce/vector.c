@@ -29,13 +29,13 @@ void grow (vector_t *v) {
     v->capacity = v->capacity * 2;
 }
 
-void push (vector_t* v, void* element) {
+void vector_push (vector_t* v, void* element) {
     if (v->capacity == v->size) grow(v);
     v->data[v->size] = element;
     v->size++;
 }
 
-void pop (vector_t* v) {
+void vector_pop (vector_t* v) {
     if (v->size == 0) {
         printf("Error: Vector is empty\n");
         exit(1);
@@ -43,7 +43,7 @@ void pop (vector_t* v) {
     v->size--;
 }
 
-void sort (vector_t* v, int (*compare)(const void*, const void*)) {
+void vector_sort (vector_t* v, int (*compare)(const void*, const void*)) {
     for (int i = 0; i < v->size; i++) {
         for (int j = i+1; j < v->size; j++) {
             if (compare(v->data[i], v->data[j]) == 0) {

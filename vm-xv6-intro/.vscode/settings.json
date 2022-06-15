@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "*.ejs": "html",
+        "syscall.h": "c",
+        "sysfunc.h": "c",
+        "user.h": "c",
+        "proc.h": "c",
+        "defs.h": "c",
+        "types.h": "c",
+        "mmu.h": "c",
+        "x86.h": "c",
+        "elf.h": "c",
+        "param.h": "c"
+    }
+}

@@ -444,3 +444,26 @@ procdump(void)
 }
 
 
+int mprotect(void *addr, int len) {
+  if (
+    (uint)addr + PGSIZE * len >= proc->sz ||
+    (uint)addr % PGSIZE != 0 ||
+    len <= 0
+  ) return -1;
+  for (uint i = (uint) addr; len--; i += PGSIZE) {
+    if (remove_permissions(proc->pgdir, (void*) i, PTE_W) == -1) {
+      panic("error setting permissions");
+      return -1;
+    }
+  }
+  return 0;
+}
+
+int munprotect(void *addr, int len) {
+  if (
+    (uint)addr >= proc->sz ||
+    (uint)addr % PGSIZE != 0 ||
+    len <= 0
+  ) return -1;
+  return 0;
+}

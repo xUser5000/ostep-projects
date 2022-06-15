@@ -364,3 +364,20 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   }
   return 0;
 }
+
+int add_permissions (pde_t *pgdir, void* addr, uint perm) {
+  pte_t *pte = walkpgdir(pgdir, addr, 0);
+  if (pte == 0) return -1;
+  *pte = (int) *pte | perm;
+  lcr3(PADDR(pgdir));
+  return 0;
+}
+
+int remove_permissions (pde_t *pgdir, void* addr, uint perm) {
+  pte_t *pte = walkpgdir(pgdir, addr, 0);
+  if (pte == NULL) return -1;
+  cprintf("pte = %d, perm = %d\n", *pte, perm);
+  *pte = (int) *pte & (~perm);
+  lcr3(PADDR(pgdir));
+  return 0;
+}

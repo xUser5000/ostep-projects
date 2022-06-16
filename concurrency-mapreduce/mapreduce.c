@@ -4,6 +4,7 @@
 
 #include "mapreduce.h"
 #include "vector.h"
+#include "hashtable.h"
 
 /*
 Hash Table
@@ -38,5 +39,7 @@ void MR_Run(int argc, char *argv[],
 
 int main (int argc, char* argv[]) {
     srand(time(NULL));
+    hashtable_t* h = make_hashtable(111, POLYNOMIAL_ROLLING_HASH_FUNCTION);
+    hashtable_push(h, "hello", 2);
     return 0;
 }

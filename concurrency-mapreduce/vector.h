@@ -1,3 +1,6 @@
+#ifndef __vector_h__
+#define __vector_h__
+
 #define INITIAL_CAPACITY 8
 
 typedef struct __vector_t {
@@ -11,3 +14,5 @@ void vector_pop (vector_t* v);
 void vector_sort (vector_t* v, int (*compare)(const void*, const void*));
 int (*INT_COMPARATOR)(const void*, const void*);
 int (*STR_COMPARATOR)(const void*, const void*);
+
+#endif

@@ -6,13 +6,6 @@
 #include "vector.h"
 #include "hashtable.h"
 
-/*
-Hash Table
--- Indexed List (AKA vector)
--- Pair
-Merge Sort
-*/
-
 unsigned long MR_DefaultHashPartition(char *key, int num_partitions)
 {
     unsigned long hash = 5381;

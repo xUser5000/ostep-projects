@@ -14,6 +14,8 @@ int polynomial_rolling_hash_function (char* key, int capacity) {
     return hash % capacity;
 }
 
+int (*POLYNOMIAL_ROLLING_HASH_FUNCTION)(char* key, int capacity) = polynomial_rolling_hash_function;
+
 hashtable_t* make_hashtable (
     int capacity,
     int (*hash_function)(char* key, int capacity)
@@ -38,6 +40,8 @@ hashtable_t* make_hashtable (
 void hashtable_push (hashtable_t* h, char* key, void* value) {
     pair_t* p = make_pair(key, value);
     int idx = h->hash_function(key, h->capacity);
+    if (h->data[idx] == NULL)
+        h->data[idx] = make_vector();
     vector_push(h->data[idx], p);
     h->size++;
 }

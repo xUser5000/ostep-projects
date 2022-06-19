@@ -55,6 +55,15 @@ void vector_sort (vector_t* v, int (*compare)(const void*, const void*)) {
     }
 }
 
+void vector_reverse (vector_t* v) {
+    for (int i = 0; i < v->size / 2; i++) {
+        int j = v->size - 1 - i;
+        void* tmp = v->data[i];
+        v->data[i] = v->data[j];
+        v->data[j] = tmp;
+    }
+}
+
 static int compare_int (const void* a, const void* b) {
     return (int) a <= (int) b;
 }

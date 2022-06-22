@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #ifndef __vector_h__
 #define __vector_h__
 
@@ -6,6 +8,7 @@
 typedef struct __vector_t {
     int size, capacity;
     void** data;
+    pthread_mutex_t lock;
 } vector_t;
 
 vector_t* make_vector ();

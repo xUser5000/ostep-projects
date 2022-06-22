@@ -3,16 +3,16 @@
 
 #include "vector.h"
 
+typedef unsigned long (*hash_function)(char* key , int capacity);
+
 typedef struct __hashtable_t {
     int capacity, size;
-    int (*hash_function)(char* key, int capacity);
+    hash_function hash;
     vector_t** data;
 } hashtable_t;
 
-int (*POLYNOMIAL_ROLLING_HASH_FUNCTION)(char* key, int capacity);
-
-hashtable_t* make_hashtable(int capacity, int (*hash_function)(char* key, int capacity));
-void hashtable_push(hashtable_t* h, char* key, void* value);
+hashtable_t* make_hashtable(int capacity, hash_function hash);
+void hashtable_set(hashtable_t* h, char* key, void* value);
 void* hashtable_get(hashtable_t* h, char *key);
 
 #endif

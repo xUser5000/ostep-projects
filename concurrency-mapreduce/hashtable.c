@@ -6,19 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-int polynomial_rolling_hash_function (char* key, int capacity) {
-    unsigned long hash = 5381;
-    int c;
-    while ((c = *key++) != '\0')
-        hash = hash * 33 + c;
-    return hash % capacity;
-}
-
-int (*POLYNOMIAL_ROLLING_HASH_FUNCTION)(char* key, int capacity) = polynomial_rolling_hash_function;
-
 hashtable_t* make_hashtable (
     int capacity,
-    int (*hash_function)(char* key, int capacity)
+    hash_function hash
 )
 {
     hashtable_t* hashtable = malloc(sizeof(hashtable));
@@ -28,8 +18,8 @@ hashtable_t* make_hashtable (
     }
     hashtable->size = 0;
     hashtable->capacity = capacity;
-    hashtable->hash_function = hash_function;
-    hashtable->data = malloc(hashtable->capacity * sizeof(vector_t*));
+    hashtable->hash = hash;
+    hashtable->data = calloc(hashtable->capacity, sizeof(vector_t*));
     if (hashtable->data == NULL) {
         printf("Malloc: error while creating a hash table\n");
         exit(1);
@@ -37,17 +27,24 @@ hashtable_t* make_hashtable (
     return hashtable;
 }
 
-void hashtable_push (hashtable_t* h, char* key, void* value) {
+void hashtable_set (hashtable_t* h, char* key, void* value) {
     pair_t* p = make_pair(key, value);
-    int idx = h->hash_function(key, h->capacity);
+    int idx = h->hash(key, h->capacity);
     if (h->data[idx] == NULL)
         h->data[idx] = make_vector();
-    vector_push(h->data[idx], p);
     h->size++;
+    for (int i = 0; i < h->data[idx]->size; i++) {
+        pair_t* q = h->data[idx]->data[i];
+        if (strcmp(key, q->first) == 0) {
+            q->second = value;
+            return;
+        }
+    }
+    vector_push(h->data[idx], p);
 }
 
 void* hashtable_get (hashtable_t* h, char* key) {
-    int hash = h->hash_function(key, h->size);
+    int hash = h->hash(key, h->capacity);
     vector_t* v = h->data[hash];
     if (v == NULL)
         return NULL;
